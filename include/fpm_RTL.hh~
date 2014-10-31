@@ -1,0 +1,36 @@
+#ifndef fpm_RTL_H
+#define fpm_RTL_H
+
+#include "systemc.h"
+
+SC_MODULE(fpm_RTL){
+
+  sc_in<sc_uint<1> >    number_isready;
+  sc_in<sc_uint<64> >   number_port_one;
+  sc_in<sc_uint<64> >   number_port_two;
+  sc_out<sc_uint<64> >  result_port;
+  sc_out<sc_uint<1> >   result_isready;
+  sc_in<bool>           reset;
+  sc_in< sc_dt::sc_logic > clk;
+
+  typedef enum {Reset_ST, ST_0, ST_1, ST_2, ST_3, ST_4, ST_5, ST_6, ST_7, ST_8, ST_9} STATES;
+
+  sc_signal<STATES> STATUS, NEXT_STATUS;
+  sc_signal<sc_uint<64> > Prodotto;
+  sc_signal<sc_uint<64> > Number_one;
+  sc_signal<sc_uint<64> > Number_two;
+
+  void elaborate_MULT(void);
+  void elaborate_MULT_FSM(void);
+
+  SC_CTOR(fpm_RTL){
+    SC_METHOD(elaborate_MULT_FSM);
+    sensitive << reset.neg();
+    sensitive << clk.pos();
+
+    SC_METHOD(elaborate_MULT);
+    sensitive << STATUS << number_isready << number_port_one << number_port_two;
+  };
+};
+
+#endif
