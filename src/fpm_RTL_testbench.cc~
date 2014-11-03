@@ -39,18 +39,20 @@ void fpm_RTL_testbench::run()
     p_Out_data_one.write(temp_data_in_one);
     p_Out_data_two.write(temp_data_in_two);
 
-    p_Out_enable.write(1);
+    p_Out_enable_testbench.write(1);
     wait();
 
-    while(p_In_enable.read() != 1) wait();
-    result=p_In_data.read();
+    while(p_In_enable_testbench.read() != 1) wait();
+    result=p_In_result.read();
     cout << "\t is: " << result << endl;
+
 
   }
 
   reset_to_RTL.write(0);
-  p_Out_enable.write(0);
+  p_Out_enable_testbench.write(0);
   p_Out_data_one.write(0);
+  p_Out_data_two.write(0);
 
   sc_stop();
 

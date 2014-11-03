@@ -11,7 +11,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
     switch(STATUS){
       case Reset_ST:
         result_port.write(0);
-        result_isready.write(0);
+        result_isready.write(0);	
         break;
       case ST_0:
         result_port.write(0);
@@ -32,7 +32,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
         break;
       case ST_3:
 
-	Prodotto.write( number_port_one.read() );
+	Prodotto = number_port_one.read();
 	/*
         if (Root.read() < Rem.read()){
           Rem.write(Rem.read() - Root.read() - 1);
@@ -41,9 +41,9 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
         Counter.write(Counter.read() + 1);*/
         break;
       case ST_4:
-	
-        result_isready.write(1);
-        result_port.write( number_port_one.read() );
+
+
+
         break;
       case ST_5:
         
@@ -62,7 +62,13 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
       break;
       case ST_9:
-        
+        result_isready.write(1);
+	// così funziona, ma non uso Prodotto
+        // result_port.write( number_port_one.read() + number_port_two.read() );
+	
+	// in uno di questi due modi funziona solo al primo colpo, non cambia il valore
+	// result_port.write( Number_one.read() );
+	result_port.write( Prodotto.read() );        
 
       break;
     } 
@@ -83,7 +89,7 @@ void fpm_RTL :: elaborate_MULT(void){
     // stato di controllo, se il segnale number_isready è a 1 allora ho i due numeri
     // e posso avanzare allo stato ST_1
     case ST_0:
-      if (number_isready.read() == 1){
+      if (numbers_areready.read() == 1){
         NEXT_STATUS = ST_1;
       } else {
         NEXT_STATUS = ST_0;
@@ -105,16 +111,12 @@ void fpm_RTL :: elaborate_MULT(void){
     // controllo il segnale overflow, se è a 1, allora vado ST_5 che darà errore
     // altrimenti avanza allo stato ST_6	
     case ST_4:
-	/*if (overflow.read() == 1){
-	        NEXT_STATUS = ST_5;
-	} else {
-	        NEXT_STATUS = ST_6;
-        }*/
+	NEXT_STATUS = ST_5;
       break;
 
     // se vado nello stato ST_5, manderò errore e il prossimo stato sarà lo stato di reset
     case ST_5:
-      	NEXT_STATUS = Reset_ST;
+      	NEXT_STATUS = ST_6;
       break;
 
     case ST_6:
@@ -124,11 +126,7 @@ void fpm_RTL :: elaborate_MULT(void){
     // stato di controllo, controlla sul segnale not_normalized se è a 1
     // il numero non è normalizzato allora torno allo stato ST_3
     case ST_7:
-	/*if (not_normalized.read() == 1){
-	        NEXT_STATUS = ST_3;
-	} else {
-	        NEXT_STATUS = ST_8;
-        }*/
+	NEXT_STATUS = ST_8;
       break;
 
     case ST_8:

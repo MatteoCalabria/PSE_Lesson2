@@ -15,15 +15,15 @@ private:
 
 public:
 
-  sc_in<sc_uint<1> >  	p_In_enable;
-  sc_in<sc_uint<64> > 	p_In_data;
-  sc_in<sc_uint<64> > 	p_In_data_one;
-  sc_in<sc_uint<64> > 	p_In_data_two;
-  sc_out<sc_uint<1> >  	p_Out_enable;
-  sc_out<sc_uint<64> > 	p_Out_data_one;
-  sc_out<sc_uint<64> > 	p_Out_data_two;
   sc_out< bool >        reset_to_RTL;
   sc_out< sc_logic >    clk;
+  sc_in<sc_uint<64> > 	p_In_data_one;
+  sc_in<sc_uint<64> > 	p_In_data_two;
+  sc_out<sc_uint<64> > 	p_Out_data_one;
+  sc_out<sc_uint<64> > 	p_Out_data_two;
+  sc_out<sc_uint<1> >  	p_Out_enable_testbench;
+  sc_in<sc_uint<1> >  	p_In_enable_testbench;
+  sc_in<sc_uint<64> > 	p_In_result;
 
   SC_HAS_PROCESS(fpm_RTL_testbench);
   fpm_RTL_testbench(sc_module_name name);
