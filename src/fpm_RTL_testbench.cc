@@ -33,7 +33,8 @@ void fpm_RTL_testbench::run()
   for (int i = 1; i <= 3; i++){
     	temp_data_in_one = doubleToLogicVector((rand() % 256) - 127); 
     	temp_data_in_two = doubleToLogicVector((rand() % 256) - 127);
-
+	//temp_data_in_one = double ((rand() % 256) - 127);
+	//temp_data_in_two = double ((rand() % 256) - 127);
 
  
     cout<<"\tThe multiplication of "<<temp_data_in_one << endl;

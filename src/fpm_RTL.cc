@@ -1,9 +1,26 @@
 #include "fpm_RTL.hh"
-#include "support.hh"
 
 int BIAS = 1023;
 
+
 void fpm_RTL :: elaborate_MULT_FSM(void){
+
+	sc_lv <64> Number_one;
+  	sc_lv<52> Number_one_significand;
+  	sc_lv<11> Number_one_exponent;
+  	sc_lv<1> Number_one_sign;
+
+	sc_lv <64> Number_two;
+  	sc_lv<52> Number_two_significand;
+  	sc_lv<11> Number_two_exponent;
+  	sc_lv<1> Number_two_sign;
+	
+	static int exp1;
+	static int i;	
+	static int sign1;
+	static int j;
+
+
   if (reset.read() == 0){
     STATUS = Reset_ST;
   }
@@ -24,29 +41,56 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
       case ST_1: // leggiamo i due numeri e identifichiamo i loro segni, esponenti e mantisse
 	// primo numero
-        Number_one = number_port_one.read();	
-	Number_one_sign[0] = Number_one[0];
+
+        Number_one = number_port_one.read();
+	Number_one_sign[0] = Number_one[63];	
+
+	exp1 = 10;
+	for(i = 62 ; i>=52; i--)
+		Number_one_exponent[exp1--] = Number_one[i];
+
+	sign1 = 51;
+	for(j = 51; j>=0; j--)
+		Number_one_significand[sign1--] = Number_one[j];
+
+	cout <<"\nsegno" << Number_one_sign ;
+	cout <<"\nesponente" << Number_one_exponent ;
+	cout <<"\nmantissa" << Number_one_significand ;
+
+	// secondo numero	
+
+	/*Number_two = number_port_two.read();
+	Number_two_sign[0] = Number_two[63];		
+	for(int exp2 = 62; exp2>=52; exp2--)
+		Number_two_exponent[exp2] = Number_two[exp2];
+	for(int sign2 = 51; sign2>=0; sign2--)
+		Number_two_significand[sign2] = Number_two[sign2];*/
+
+
+
+
+	/*Number_one_sign[0] = Number_one[0];
 	int exp1 = 1;	
 	for(exp1; exp1<=12; exp1++)
 		Number_one_exponent[exp1] = Number_one[exp1];
 	int sign1 = 13;	
-	for(sign; sign1<=63; sign1++)
-		Number_one_significand[sign1] = Number_one[sign1];
+	for(sign1; sign1<=63; sign1++)
+		Number_one_significand[sign1] = Number_one[sign1];*/
 
-	// secondo numero
-        Number_two = number_port_two.read();	
-	Number_two_sign[0] = Number_two[0];
+
+
+	/*Number_two_sign[0] = Number_two[0];
 	int exp2 = 1;	
 	for(exp2; exp2<=11; exp2++)
 		Number_two_exponent[exp2] = Number_two[exp2];
 	int sign2 = 12;	
 	for(sign2; sign2<=63; sign2++)
-		Number_two_significand[sign2] = Number_two[sign2];
+		Number_two_significand[sign2] = Number_two[sign2];*/
         break;
 
       case ST_2: 
 	// somma degli esponenti
-	int i = 1;
+	/*int i = 1;
 	int carry = 0;
 	for(i; i<=12; i++){
 		if(Number_one_exponent[i] + Number_two_exponent[i] + carry == 0){
@@ -71,25 +115,13 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	}
 
 	sc_signal< sc_int<64> >  temp_exp = logicVectorToDouble(Prodotto_exponent) - BIAS;
-	Prodotto_exponent = doubleToLogicVector(temp_exp);
+	Prodotto_exponent = doubleToLogicVector(temp_exp);*/
 
         break;
 
       case ST_3: // moltiplichiamo le mantisse
 
-	int i = 63;
-	double mantissa1 = 0.0;
-	for(i; i>=12; i++)
-		mantissa1 += (2^(i-64)) * Number_one_significand[i];
 
-	int j = 63;
-	double mantissa2 = 0.0;
-	for(j; j>=12; j++)
-		mantissa2 += (2^(j-64)) * Number_two_significand[j];
-	
-	double mantissa = (1+mantissa1) * (1+mantissa2);	
-
-        break;
 
       case ST_4: // controllo normalizzazione mantissa
 	
@@ -109,6 +141,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
       break;
       case ST_8:
+	// Prodotto.write( Number_one.read() * Number_two.read() );
         
 
       break;

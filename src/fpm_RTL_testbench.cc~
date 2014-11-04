@@ -25,15 +25,16 @@ void fpm_RTL_testbench::clk_gen()
 void fpm_RTL_testbench::run()
 {
 
-  //sc_uint<64> temp_data_in_one, temp_data_in_two, result = 0;
-  sc_lv<64> temp_data_in_one, temp_data_in_two, result = 0;
+  sc_uint<64> temp_data_in_one, temp_data_in_two, result = 0;
+  //sc_lv<64> temp_data_in_one, temp_data_in_two, result = 0;
 
   cout<<"Calcoliamo la Floating Point Multiplication di 20 coppie di numeri"<<endl;
 
   for (int i = 1; i <= 3; i++){
     	temp_data_in_one = doubleToLogicVector((rand() % 256) - 127); 
     	temp_data_in_two = doubleToLogicVector((rand() % 256) - 127);
-
+	//temp_data_in_one = double ((rand() % 256) - 127);
+	//temp_data_in_two = double ((rand() % 256) - 127);
 
  
     cout<<"\tThe multiplication of "<<temp_data_in_one << endl;
