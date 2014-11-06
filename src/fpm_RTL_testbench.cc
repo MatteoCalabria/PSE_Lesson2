@@ -35,13 +35,13 @@ void fpm_RTL_testbench::run()
     	//temp_data_in_one = doubleToLogicVector((rand() % 256) - 127); 
     	//temp_data_in_two = doubleToLogicVector((rand() % 256) - 127);
 	temp_data_in_one = doubleToLogicVector(1.5); 
-    	temp_data_in_two = doubleToLogicVector(10);
+    	temp_data_in_two = doubleToLogicVector(1.5);
 	
 
  
     //cout<<"\nin binario:";
-    //cout<<"\nThe multiplication of "<<temp_data_in_one << endl;
-    //cout<<"\nand "<<temp_data_in_two << endl;
+    cout<<"\nThe multiplication of "<<temp_data_in_one << endl;
+    cout<<"\nand "<<temp_data_in_two << endl;
 
    /* cout<<"\nin double:";
     cout<<"\nThe multiplication of "<< logicVectorToDouble(temp_data_in_one) <<endl;
@@ -56,7 +56,7 @@ void fpm_RTL_testbench::run()
 
     while(p_In_enable_testbench.read() != 1) wait();
     result=p_In_result.read();
-    //cout << "\t is: " << result << endl << endl;
+    cout << "\t is: " << result << endl << endl;
 
 
   }

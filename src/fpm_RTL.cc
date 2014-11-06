@@ -21,10 +21,12 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	static sc_lv<104> mantissa;
 	static sc_lv<104> temp_num_uno;
 
-	static sc_lv<128> Prodotto;
-  	static sc_lv<104> Prodotto_significand;
-  	static sc_lv<22> Prodotto_exponent;
+	static sc_lv<64> Prodotto;
+  	static sc_lv<52> Prodotto_significand;
+  	static sc_lv<11> Prodotto_exponent;
   	static sc_lv<1> Prodotto_sign;
+
+	static sc_lv<52> temp;
 	
 	static int exp1;
 	static int sign1;
@@ -37,6 +39,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	static double mant2;
 	static double prod_mant;
 	static int exp_intero;
+	static int temp_exp;
 	static int parte_intera_mantissa;
 	static double parte_decimale_mantissa;
 	static double temp_mantissa;
@@ -103,7 +106,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	// somma degli esponenti
 	i = 0;
 	carry[0] = 0;
-	for(i; i<=11; i++){
+	for(i; i<11; i++){
 
 		// risultato = 0
 		if( (Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0]==0) ){
@@ -150,28 +153,12 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
         break;
 
       case ST_3: // moltiplichiamo le mantisse
-	/*mant1 = 1.0;
-	i = 50;
-	for(i; i>=0; i--){
-		if(Number_one_significand[i]==1)
-			mant1 += (double)pow(2,i-51);
-	}
-
-	mant2 = 1.0;
-	j = 50;
-	for(j; j>=0; j--){
-		if(Number_two_significand[j]==1)
-			mant2 += (double)pow(2,j-51);
-	}
-
-	prod_mant = mant1 * mant2;
-	cout<<"\nprodotto delle due mantisse: " << prod_mant;*/
 
 	i = 0;
 	for(i; i<104; i++)
 		mantissa[i] = 0;
 
-	cout << "\nmantissa inizializzata a zero:\n" << mantissa;
+	//cout << "\nmantissa inizializzata a zero:\n" << mantissa;
 	
 	i = 0;
 	for(i; i<52; i++)
@@ -179,7 +166,8 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	i = 52;
 	for(i; i<104; i++)
 		temp_num_uno[i] = 0;
-	cout<<"\ntemp uno inizializzato su 104 bit\n" << temp_num_uno;
+	
+	//cout<<"\ntemp uno inizializzato su 104 bit\n" << temp_num_uno;
 
 	i = 0;	
 	carry = 0;
@@ -223,63 +211,45 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	
 	}
 
-	cout << "\nCONTROLLO";
+	/*cout << "\nCONTROLLO";
 	cout <<"\nmantissa1: " << Number_one_significand << endl;
 	cout <<"\nmantissa2: " << Number_two_significand << endl;
-	cout <<"\nprodottoo: " << mantissa << endl;
+	cout <<"\nprodottoo: " << mantissa << endl;*/
 	
 	
 		 
 
       case ST_4: // controlli e normalizzazione
 
-	// trasformiamo il prodotto delle mantisse da double a binario
-	i = 51;
-	parte_intera_mantissa = (int) prod_mant;
-	parte_decimale_mantissa = prod_mant - parte_intera_mantissa; 
-	
-	// parte decimale
-	while( i-- >= 0){
-		temp_mantissa = 2*parte_decimale_mantissa;
-		parte_decimale_mantissa = temp_mantissa - parte_intera_mantissa;
-		parte_intera_mantissa = (int) temp_mantissa;
-
-		if(parte_intera_mantissa == 0)
-			Prodotto_significand[i] = 0;
-		else if(parte_intera_mantissa == 1)
-			Prodotto_significand[i] = 1;
+	i = 103;
+	temp_exp = 0;
+	for(i; i>52; i--){
+		if(mantissa[i]==1){
+			mantissa = mantissa >> 1;
+			temp_exp++;
+		}
 	}
 
-	// parte intera
-	if(parte_intera_mantissa == 0)
-		Prodotto_significand[51] = 0;
-	else if(parte_intera_mantissa == 1)
-		Prodotto_significand[51] = 1;
-	else if(Prodotto_significand[0]==1)
-			cout<<"\nunderflow mantissa!";
-	else if(exp_intero==1024)
-			cout<<"\noverflow esponente!";
-	else if(parte_intera_mantissa == 2){
-		exp_intero++;
-		i = 1;
-		for(i; i<=50; i++)
-			Prodotto_significand[i] = Prodotto_significand[i+1];
-		Prodotto_significand[0] = 0;			
-	}
-	else if(parte_intera_mantissa == 3){
-		Prodotto_significand[0] = 1;
-		exp_intero++;
-		i = 1;		
-		for(i; i<=50; i++)
-				Prodotto_significand[i] = Prodotto_significand[i+1];
-		Prodotto_significand[0] = 1;			
-	}
-	
-	
+	mantissa = mantissa >> 1;
 
+	//cout <<"\nprodotto dopo gli shift con il ciclo: " << mantissa << endl;
+
+	i = 0;
+	for(i; i<52; i++)
+		Prodotto_significand[i] = mantissa[i];
+
+	//cout <<"prodotto finale mantissa :" << Prodotto_significand;
+
+	Prodotto[0] = Number_one[0];
+
+	i = 0;
+	for(i; i<11; i++)
+		Prodotto[i+1] = Prodotto_exponent[i];
 	
-
-
+	i = 0;
+	for(i; i<52; i++)
+		Prodotto[i+11] = Prodotto_significand[i];
+	
         break;
       case ST_5:
         
@@ -300,7 +270,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
       break;
       case ST_9:
         result_isready.write(1);
-	//result_port.write( );        
+	result_port.write( Prodotto );        
 
       break;
     } 
