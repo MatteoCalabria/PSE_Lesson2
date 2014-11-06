@@ -223,32 +223,37 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	i = 103;
 	temp_exp = 0;
-	for(i; i>52; i--){
+	for(i; i>=52; i--){
 		if(mantissa[i]==1){
 			mantissa = mantissa >> 1;
 			temp_exp++;
 		}
 	}
 
-	mantissa = mantissa >> 1;
-
-	//cout <<"\nprodotto dopo gli shift con il ciclo: " << mantissa << endl;
+	cout <<"\nprodotto dopo gli shift con il ciclo: " << mantissa << endl;
+	cout <<"\nabbiamo fatto tot shift: " << temp_exp;
 
 	i = 0;
 	for(i; i<52; i++)
 		Prodotto_significand[i] = mantissa[i];
 
-	//cout <<"prodotto finale mantissa :" << Prodotto_significand;
-
-	Prodotto[0] = Number_one[0];
+	cout <<"\nprodotto finale mantissa :" << Prodotto_significand;
 
 	i = 0;
-	for(i; i<11; i++)
-		Prodotto[i+1] = Prodotto_exponent[i];
+	for(i; i<64; i++)
+		Prodotto[i] = 0;
+
+	Prodotto[63] = 0; // segno
+
+	i = 62;
+	j = 0;
+	for(i; i>=51; i--)
+		Prodotto[i] = Prodotto_exponent[j++];
 	
-	i = 0;
-	for(i; i<52; i++)
-		Prodotto[i+11] = Prodotto_significand[i];
+	i = 51;
+	j = 51;
+	for(i; i>=0; i--)
+		Prodotto[i] = Prodotto_significand[j--];
 	
         break;
       case ST_5:
