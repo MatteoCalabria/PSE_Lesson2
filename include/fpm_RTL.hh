@@ -1,7 +1,7 @@
 #ifndef fpm_RTL_H
 #define fpm_RTL_H
 
-#include "systemc.h"
+#include <systemc.h>
 
 SC_MODULE(fpm_RTL){
 
@@ -27,7 +27,7 @@ SC_MODULE(fpm_RTL){
   sc_signal<sc_uint<64> > Number_two_exponent;
   sc_signal<sc_uint<1> > Number_two_sign;*/
 
-  sc_signal<sc_uint<64> > Prodotto;
+  //sc_signal<sc_uint<64> > Prodotto;
   /*sc_signal<sc_uint<64> > Prodotto_significand;
   sc_signal<sc_uint<64> > Prodotto_exponent;
   sc_signal<sc_uint<1> > Prodotto_sign;*/

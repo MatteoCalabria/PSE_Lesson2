@@ -4,6 +4,7 @@
 #define PERIOD 10
 
 #include <systemc.h>
+#include <support.hh>
 
 class fpm_RTL_testbench : public sc_core::sc_module
 {
@@ -21,8 +22,8 @@ public:
   sc_in<sc_uint<64> > 	p_In_data_two;
   sc_out<sc_uint<64> > 	p_Out_data_one;
   sc_out<sc_uint<64> > 	p_Out_data_two;
-  sc_out<sc_uint<1> >  	p_Out_enable;
-  sc_in<sc_uint<1> >  	p_In_result_enable;
+  sc_out<sc_uint<1> >  	p_Out_enable_testbench;
+  sc_in<sc_uint<1> >  	p_In_enable_testbench;
   sc_in<sc_uint<64> > 	p_In_result;
 
   SC_HAS_PROCESS(fpm_RTL_testbench);

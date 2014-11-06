@@ -1,6 +1,7 @@
 
 #include "fpm_RTL_testbench.hh"
 #include "fpm_RTL.hh"
+#include "support.hh"
 
 int sc_main(int argc, char **argv)
 {
@@ -11,8 +12,8 @@ int sc_main(int argc, char **argv)
   sc_signal<sc_uint<64> >   p_In_data_one;
   sc_signal<sc_uint<64> >   p_In_data_two;
   sc_signal<sc_uint<64> >   Prodotto;
-  sc_signal< sc_uint<64> > p_data_number_one;
-  sc_signal< sc_uint<64> > p_data_number_two;
+  sc_signal< sc_uint<64> >  p_data_number_one;
+  sc_signal< sc_uint<64> >  p_data_number_two;
   sc_signal<sc_uint<1> >    p_In_enable;
   sc_signal<sc_uint<1> >    p_Out_enable; 
 

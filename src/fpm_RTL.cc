@@ -1,24 +1,47 @@
 #include "fpm_RTL.hh"
+#include <cmath>
+
+
 
 int BIAS = 1023;
 
 
 void fpm_RTL :: elaborate_MULT_FSM(void){
 
-	sc_lv <64> Number_one;
-  	sc_lv<52> Number_one_significand;
-  	sc_lv<11> Number_one_exponent;
-  	sc_lv<1> Number_one_sign;
+	static sc_lv<64> Number_one;
+  	static sc_lv<52> Number_one_significand;
+  	static sc_lv<11> Number_one_exponent;
+  	static sc_lv<1> Number_one_sign;
 
-	sc_lv <64> Number_two;
-  	sc_lv<52> Number_two_significand;
-  	sc_lv<11> Number_two_exponent;
-  	sc_lv<1> Number_two_sign;
+	static sc_lv<64> Number_two;
+  	static sc_lv<52> Number_two_significand;
+  	static sc_lv<11> Number_two_exponent;
+  	static sc_lv<1> Number_two_sign;
+
+	static sc_lv<104> mantissa;
+	static sc_lv<104> temp_num_uno;
+
+	static sc_lv<128> Prodotto;
+  	static sc_lv<104> Prodotto_significand;
+  	static sc_lv<22> Prodotto_exponent;
+  	static sc_lv<1> Prodotto_sign;
 	
 	static int exp1;
-	static int i;	
 	static int sign1;
+	static int exp2;
+	static int sign2;
+	static int i;
 	static int j;
+	static sc_lv<1> carry;
+	static double mant1;
+	static double mant2;
+	static double prod_mant;
+	static int exp_intero;
+	static int parte_intera_mantissa;
+	static double parte_decimale_mantissa;
+	static double temp_mantissa;
+	static uint64_t tmp;
+
 
 
   if (reset.read() == 0){
@@ -36,10 +59,10 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
       case ST_0:
         result_port.write(0);
         result_isready.write(0);
-	Prodotto.write(0);
         break;
 
       case ST_1: // leggiamo i due numeri e identifichiamo i loro segni, esponenti e mantisse
+
 	// primo numero
 
         Number_one = number_port_one.read();
@@ -53,77 +76,207 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	for(j = 51; j>=0; j--)
 		Number_one_significand[sign1--] = Number_one[j];
 
-	cout <<"\nsegno" << Number_one_sign ;
+	/*cout <<"\nsegno" << Number_one_sign ;
 	cout <<"\nesponente" << Number_one_exponent ;
-	cout <<"\nmantissa" << Number_one_significand ;
+	cout <<"\nmantissa" << Number_one_significand ;*/
 
 	// secondo numero	
 
-	/*Number_two = number_port_two.read();
-	Number_two_sign[0] = Number_two[63];		
-	for(int exp2 = 62; exp2>=52; exp2--)
-		Number_two_exponent[exp2] = Number_two[exp2];
-	for(int sign2 = 51; sign2>=0; sign2--)
-		Number_two_significand[sign2] = Number_two[sign2];*/
+	Number_two = number_port_two.read();
+	Number_two_sign[0] = Number_two[63];	
 
+	exp2 = 10;
+	for(i = 62 ; i>=52; i--)
+		Number_two_exponent[exp2--] = Number_two[i];
 
+	sign2 = 51;
+	for(j = 51; j>=0; j--)
+		Number_two_significand[sign2--] = Number_two[j];
 
+	/*cout <<"\nsegno" << Number_one_sign ;
+	cout <<"\nesponente" << Number_one_exponent ;
+	cout <<"\nmantissa" << Number_one_significand ;*/
 
-	/*Number_one_sign[0] = Number_one[0];
-	int exp1 = 1;	
-	for(exp1; exp1<=12; exp1++)
-		Number_one_exponent[exp1] = Number_one[exp1];
-	int sign1 = 13;	
-	for(sign1; sign1<=63; sign1++)
-		Number_one_significand[sign1] = Number_one[sign1];*/
-
-
-
-	/*Number_two_sign[0] = Number_two[0];
-	int exp2 = 1;	
-	for(exp2; exp2<=11; exp2++)
-		Number_two_exponent[exp2] = Number_two[exp2];
-	int sign2 = 12;	
-	for(sign2; sign2<=63; sign2++)
-		Number_two_significand[sign2] = Number_two[sign2];*/
         break;
 
       case ST_2: 
 	// somma degli esponenti
-	/*int i = 1;
-	int carry = 0;
-	for(i; i<=12; i++){
-		if(Number_one_exponent[i] + Number_two_exponent[i] + carry == 0){
+	i = 0;
+	carry[0] = 0;
+	for(i; i<=11; i++){
+
+		// risultato = 0
+		if( (Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0]==0) ){
 			Prodotto_exponent[i] = 0;
-			carry = 0;
+			carry[0] = 0;
 		}
 
-		if(Number_one_exponent[i] + Number_two_exponent[i] + carry == 1){
+		// risultato = 1
+		if( ((Number_one_exponent[i]==1) && (Number_two_exponent[i]==0) && (carry[0] == 0)) ||
+		((Number_one_exponent[i]==0) && (Number_two_exponent[i]==1) && (carry[0] == 0)) ||
+		((Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0] == 1)) ) {
 			Prodotto_exponent[i] = 1;
-			carry = 0;
+			carry[0] = 0;
 		}
 
-		if(Number_one_exponent[i] + Number_two_exponent[i] + carry == 2){
+		// risultato = 2
+		if( ((Number_one_exponent[i]==1) && (Number_two_exponent[i]==1) && (carry[0] == 0)) ||
+		((Number_one_exponent[i]==1) && (Number_two_exponent[i]==0) && (carry[0] == 1)) ||
+		((Number_one_exponent[i]==0) && (Number_two_exponent[i]==1) && (carry[0] == 1)) ) {
 			Prodotto_exponent[i] = 0;
-			carry = 1;
+			carry[0] = 1;
 		}
 
-		if(Number_one_exponent[i] + Number_two_exponent[i] + carry > 2){
+		// risultato > 2
+		if( (Number_one_exponent[i]==1) && (Number_two_exponent[i]==1) && (carry[0] == 1) ){
 			Prodotto_exponent[i] = 1;
-			carry = 1;
-		}
+			carry[0] = 1;
+		}	
+
 	}
 
-	sc_signal< sc_int<64> >  temp_exp = logicVectorToDouble(Prodotto_exponent) - BIAS;
-	Prodotto_exponent = doubleToLogicVector(temp_exp);*/
+	exp_intero = -BIAS;
+	i = 0;
+	for(i; i<11; i++)
+		if(Prodotto_exponent[i]==1)
+			exp_intero += pow(2,i);
+	
+
+	/*cout<<"\nesponente uno: " << Number_one_exponent;
+	cout<<"\nesponente due: " << Number_two_exponent;
+	cout << "\n somma esponenti: " << Prodotto_exponent;
+	cout <<"esponente in intero" << exp_intero;*/
 
         break;
 
       case ST_3: // moltiplichiamo le mantisse
+	/*mant1 = 1.0;
+	i = 50;
+	for(i; i>=0; i--){
+		if(Number_one_significand[i]==1)
+			mant1 += (double)pow(2,i-51);
+	}
 
+	mant2 = 1.0;
+	j = 50;
+	for(j; j>=0; j--){
+		if(Number_two_significand[j]==1)
+			mant2 += (double)pow(2,j-51);
+	}
 
+	prod_mant = mant1 * mant2;
+	cout<<"\nprodotto delle due mantisse: " << prod_mant;*/
 
-      case ST_4: // controllo normalizzazione mantissa
+	i = 0;
+	for(i; i<104; i++)
+		mantissa[i] = 0;
+
+	cout << "\nmantissa inizializzata a zero:\n" << mantissa;
+	
+	i = 0;
+	for(i; i<52; i++)
+		temp_num_uno[i] = Number_one_significand[i];
+	i = 52;
+	for(i; i<104; i++)
+		temp_num_uno[i] = 0;
+	cout<<"\ntemp uno inizializzato su 104 bit\n" << temp_num_uno;
+
+	i = 0;	
+	carry = 0;
+	for(i; i<52; i++){
+		j = i;
+		if(Number_two_significand[i]==1)
+		for(j; j<i+52; j++){
+				
+			// risultato = 0
+			if( (mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==0) ){
+				mantissa[j] = 0;
+				carry[0] = 0;
+			}
+
+			// risultato = 1
+			else if( ((mantissa[j]==1) && (temp_num_uno[j]==0) && (carry[0]==0)) ||
+			((mantissa[j]==0) && (temp_num_uno[j]==1) && (carry[0]==0)) ||
+			((mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==1)) ) {
+				mantissa[j] = 1;
+				carry[0] = 0;
+			}
+
+			// risultato = 2
+			else if( ((mantissa[j]==1) && (temp_num_uno[j]==1) && (carry[0]==0)) ||
+			((mantissa[j]==0) && (temp_num_uno[j]==1) && (carry[0]==1)) ||
+			((mantissa[j]==1) && (temp_num_uno[j]==0) && (carry[0]==1)) ) {
+				mantissa[j] = 0;
+				carry[0] = 1;
+			}
+
+			// risultato > 2
+			else if( (mantissa[j]==1) && (temp_num_uno[j]==1) && (carry[0]==1) ){
+				mantissa[j] = 1;
+				carry[0] = 1;
+			}
+
+		}	
+		
+		// shift
+		temp_num_uno = temp_num_uno << 1; 
+	
+	}
+
+	cout << "\nCONTROLLO";
+	cout <<"\nmantissa1: " << Number_one_significand << endl;
+	cout <<"\nmantissa2: " << Number_two_significand << endl;
+	cout <<"\nprodottoo: " << mantissa << endl;
+	
+	
+		 
+
+      case ST_4: // controlli e normalizzazione
+
+	// trasformiamo il prodotto delle mantisse da double a binario
+	i = 51;
+	parte_intera_mantissa = (int) prod_mant;
+	parte_decimale_mantissa = prod_mant - parte_intera_mantissa; 
+	
+	// parte decimale
+	while( i-- >= 0){
+		temp_mantissa = 2*parte_decimale_mantissa;
+		parte_decimale_mantissa = temp_mantissa - parte_intera_mantissa;
+		parte_intera_mantissa = (int) temp_mantissa;
+
+		if(parte_intera_mantissa == 0)
+			Prodotto_significand[i] = 0;
+		else if(parte_intera_mantissa == 1)
+			Prodotto_significand[i] = 1;
+	}
+
+	// parte intera
+	if(parte_intera_mantissa == 0)
+		Prodotto_significand[51] = 0;
+	else if(parte_intera_mantissa == 1)
+		Prodotto_significand[51] = 1;
+	else if(Prodotto_significand[0]==1)
+			cout<<"\nunderflow mantissa!";
+	else if(exp_intero==1024)
+			cout<<"\noverflow esponente!";
+	else if(parte_intera_mantissa == 2){
+		exp_intero++;
+		i = 1;
+		for(i; i<=50; i++)
+			Prodotto_significand[i] = Prodotto_significand[i+1];
+		Prodotto_significand[0] = 0;			
+	}
+	else if(parte_intera_mantissa == 3){
+		Prodotto_significand[0] = 1;
+		exp_intero++;
+		i = 1;		
+		for(i; i<=50; i++)
+				Prodotto_significand[i] = Prodotto_significand[i+1];
+		Prodotto_significand[0] = 1;			
+	}
+	
+	
+
 	
 
 
@@ -147,12 +300,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
       break;
       case ST_9:
         result_isready.write(1);
-	// così funziona, ma non uso Prodotto
-        // result_port.write( number_port_one.read() + number_port_two.read() );
-	
-	// in uno di questi due modi funziona solo al primo colpo, non cambia il valore
-	// result_port.write( Number_one.read() );
-	result_port.write( Prodotto.read() );        
+	//result_port.write( );        
 
       break;
     } 
