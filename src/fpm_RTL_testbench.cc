@@ -56,7 +56,8 @@ void fpm_RTL_testbench::run()
 
     while(p_In_enable_testbench.read() != 1) wait();
     result=p_In_result.read();
-    cout << "\t is: " << result << endl << endl;
+    double stampa = logicVectorToDouble(result.read());
+    cout << "\t is: " << stampa << endl << endl;
 
 
   }
