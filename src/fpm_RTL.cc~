@@ -3,7 +3,7 @@
 
 
 
-static int BIAS = 1024;
+static int BIAS = 1023;
 
 
 void fpm_RTL :: elaborate_MULT_FSM(void){
@@ -80,9 +80,9 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	for(j = 51; j>=0; j--)
 		Number_one_significand[sign1--] = Number_one[j];
 
-	/*cout <<"\nsegno" << Number_one_sign ;
-	cout <<"\nesponente" << Number_one_exponent ;
-	cout <<"\nmantissa" << Number_one_significand ;*/
+	//cout <<"\nsegno" << Number_one_sign ;
+	//cout <<"\nesponente" << Number_one_exponent ;
+	//cout <<"\nmantissa" << Number_one_significand ;
 
 	// secondo numero	
 
@@ -99,9 +99,9 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	for(j = 51; j>=0; j--)
 		Number_two_significand[sign2--] = Number_two[j];
 
-	/*cout <<"\nsegno" << Number_one_sign ;
-	cout <<"\nesponente" << Number_one_exponent ;
-	cout <<"\nmantissa" << Number_one_significand ;*/
+	//cout <<"\nsegno" << Number_one_sign ;
+	//cout <<"\nesponente" << Number_one_exponent ;
+	//cout <<"\nmantissa" << Number_one_significand ;
 
         break;
 
@@ -115,13 +115,13 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 			Prodotto_exponent[i] = carry[0];
 
 		// risultato = 0
-		if( (Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0]==0) ){
+		else if( (Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0]==0) ){
 			Prodotto_exponent[i] = 0;
 			carry[0] = 0;
 		}
 
 		// risultato = 1
-		if( ((Number_one_exponent[i]==1) && (Number_two_exponent[i]==0) && (carry[0] == 0)) ||
+		else if( ((Number_one_exponent[i]==1) && (Number_two_exponent[i]==0) && (carry[0] == 0)) ||
 		((Number_one_exponent[i]==0) && (Number_two_exponent[i]==1) && (carry[0] == 0)) ||
 		((Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0] == 1)) ) {
 			Prodotto_exponent[i] = 1;
@@ -129,7 +129,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		}
 
 		// risultato = 2
-		if( ((Number_one_exponent[i]==1) && (Number_two_exponent[i]==1) && (carry[0] == 0)) ||
+		else if( ((Number_one_exponent[i]==1) && (Number_two_exponent[i]==1) && (carry[0] == 0)) ||
 		((Number_one_exponent[i]==1) && (Number_two_exponent[i]==0) && (carry[0] == 1)) ||
 		((Number_one_exponent[i]==0) && (Number_two_exponent[i]==1) && (carry[0] == 1)) ) {
 			Prodotto_exponent[i] = 0;
@@ -137,7 +137,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		}
 
 		// risultato > 2
-		if( (Number_one_exponent[i]==1) && (Number_two_exponent[i]==1) && (carry[0] == 1) ){
+		else if( (Number_one_exponent[i]==1) && (Number_two_exponent[i]==1) && (carry[0] == 1) ){
 			Prodotto_exponent[i] = 1;
 			carry[0] = 1;
 		}	
@@ -151,15 +151,22 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 			exp_intero += pow(2,i);*/
 
 	
-	exp_intero = (int) static_cast< sc_uint<11> >(Prodotto_exponent);
+	//cout<<"\nexp intero prima di togliere il bias: " << exp_intero;
+	//cout<<"\nexp logic vector prima di togliere il bias: " << Prodotto_exponent;
 	
+
+	exp_intero = (int) static_cast< sc_uint<12> >(Prodotto_exponent);
+	
+
 	//cout<<"\nexp intero prima di togliere il bias: " << exp_intero;
 	//cout<<"\nexp logic vector prima di togliere il bias: " << Prodotto_exponent;
 	
 	exp_intero = exp_intero - BIAS;
 
-	Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero);
+	Prodotto_exponent = static_cast< sc_lv<12> >(exp_intero);
 
+	//cout <<"\nesponente1: " << Number_one_exponent ;
+	//cout <<"\nesponente2: " << Number_two_exponent ;
 	//cout << "\nexp intero dopo aver tolto bias: " << exp_intero;			
 	//cout << "\nexp logic vector dopo aver tolto bias: " << Prodotto_exponent;
 	
@@ -290,7 +297,6 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	//mantissa = mantissa >> 52;
 
 	if(mantissa[105]==1){
-		cout<<"\ndobbiamo fare uno shift";
 		mantissa = mantissa >> 1;
 		Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero+1);
 	}
@@ -345,11 +351,11 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	for(i; i>=0; i--)
 		Prodotto[i] = Prodotto_significand[j--];
 
-	/*cout<<"\nCONTROLLO FINALE:";
-	cout<<"\nsegno: " << Prodotto[63];
-	cout<<"\nesponente: " << Prodotto_exponent;
-	cout<<"\nmantissa: " << Prodotto_significand;
-	cout<<"\nrisultato: " << Prodotto;*/
+	//cout<<"\nCONTROLLO FINALE:";
+	//cout<<"\nsegno: " << Prodotto[63];
+	//cout<<"\nesponente: " << Prodotto_exponent;
+	//cout<<"\nmantissa: " << Prodotto_significand;
+	//cout<<"\nrisultato: " << Prodotto;
 
       break;
       case ST_9:
