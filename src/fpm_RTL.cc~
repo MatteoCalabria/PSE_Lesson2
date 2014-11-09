@@ -289,8 +289,14 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	//mantissa = mantissa >> 52;
 
+	if(mantissa[105]==1){
+		cout<<"\ndobbiamo fare uno shift";
+		mantissa = mantissa >> 1;
+		Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero+1);
+	}
 
-	cout <<"\nprodotto mantissa:\n" << mantissa << endl;
+
+	//cout <<"\nprodotto mantissa:\n" << mantissa << endl;
 	//cout <<"\nabbiamo fatto tot shift: " << temp_exp;
 
 	
@@ -322,8 +328,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		Prodotto[63] = 0;
 	else
 		Prodotto[63] = 1; 
-
-	Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero+1);	
+	
 	
 	i = 62;
 	j = 10;
@@ -331,21 +336,20 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		Prodotto[i] = Prodotto_exponent[j--];
 
 
-
 	i = 0;
 	for(i; i<52; i++)
-		Prodotto_significand[i] = mantissa[i+53];
+		Prodotto_significand[i] = mantissa[i+52];
 	
 	i = 51;
 	j = 51;
 	for(i; i>=0; i--)
 		Prodotto[i] = Prodotto_significand[j--];
 
-	cout<<"\nCONTROLLO FINALE:";
+	/*cout<<"\nCONTROLLO FINALE:";
 	cout<<"\nsegno: " << Prodotto[63];
 	cout<<"\nesponente: " << Prodotto_exponent;
 	cout<<"\nmantissa: " << Prodotto_significand;
-	cout<<"\nrisultato: " << Prodotto;
+	cout<<"\nrisultato: " << Prodotto;*/
 
       break;
       case ST_9:
