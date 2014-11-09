@@ -34,9 +34,8 @@ void fpm_RTL_testbench::run()
   for (int i = 1; i <= 1; i++){
     	//temp_data_in_one = doubleToLogicVector((rand() % 256) - 127); 
     	//temp_data_in_two = doubleToLogicVector((rand() % 256) - 127);
-	temp_data_in_one = doubleToLogicVector(1.5); 
+	temp_data_in_one = doubleToLogicVector(1.25); 
     	temp_data_in_two = doubleToLogicVector(1.5);
-	
 
  
     //cout<<"\nin binario:";
@@ -56,8 +55,10 @@ void fpm_RTL_testbench::run()
 
     while(p_In_enable_testbench.read() != 1) wait();
     result=p_In_result.read();
-    double stampa = logicVectorToDouble(p_In_result.read());
-    cout << "\t is: " << stampa  << endl << endl;
+    double stampa = logicVectorToDouble(result);
+    cout << "\n is: " << stampa << endl << endl;
+    cout << "\n is: " << result << endl << endl;
+
 
 
   }

@@ -3,7 +3,7 @@
 
 
 
-static int BIAS = 1023;
+static int BIAS = 1024;
 
 
 void fpm_RTL :: elaborate_MULT_FSM(void){
@@ -20,11 +20,11 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	static sc_lv<64> Prodotto;
   	static sc_lv<52> Prodotto_significand;
-  	static sc_lv<11> Prodotto_exponent;
+  	static sc_lv<12> Prodotto_exponent;
   	static sc_lv<1> Prodotto_sign;
 
 
-	static sc_lv<106> mantissa;
+	static sc_lv<107> mantissa;
 	static sc_lv<106> temp_num_uno;
 	static sc_lv<106> temp_num_due;
 	static sc_lv<53> temp;
@@ -89,6 +89,8 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	Number_two = number_port_two.read();
 	Number_two_sign[0] = Number_two[63];	
 
+	//cout<<"\nsegno 1:" << Number_one_sign;
+
 	exp2 = 10;
 	for(i = 62 ; i>=52; i--)
 		Number_two_exponent[exp2--] = Number_two[i];
@@ -107,7 +109,10 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	// somma degli esponenti
 	i = 0;
 	carry[0] = 0;
-	for(i; i<11; i++){
+	for(i; i<12; i++){
+
+		if(i==11)
+			Prodotto_exponent[i] = carry[0];
 
 		// risultato = 0
 		if( (Number_one_exponent[i]==0) && (Number_two_exponent[i]==0) && (carry[0]==0) ){
@@ -149,13 +154,14 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	exp_intero = (int) static_cast< sc_uint<11> >(Prodotto_exponent);
 	
 	//cout<<"\nexp intero prima di togliere il bias: " << exp_intero;
+	//cout<<"\nexp logic vector prima di togliere il bias: " << Prodotto_exponent;
+	
+	exp_intero = exp_intero - BIAS;
 
-	exp_intero = exp_intero - 2*BIAS;
+	Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero);
 
-	//cout<<"\nexp intero dopo di togliere il bias: " << exp_intero;
-
-	Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero);			
-	cout << "\nsomma esponenti dopo lo static cast: " << Prodotto_exponent;
+	//cout << "\nexp intero dopo aver tolto bias: " << exp_intero;			
+	//cout << "\nexp logic vector dopo aver tolto bias: " << Prodotto_exponent;
 	
 
 	//cout<<"\nesponente uno: " << Number_one_exponent;
@@ -168,7 +174,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
       case ST_3: // moltiplicazione delle mantisse
 
 	i = 0;
-	for(i; i<106; i++)
+	for(i; i<107; i++)
 		mantissa[i] = 0;
 	//mantissa = "0";
 
@@ -177,7 +183,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	i = 0;
 	for(i; i<53; i++)
 		temp_num_uno[i] = Number_one_significand[i];
-	temp_num_uno[53] = 1;
+	temp_num_uno[52] = 1;
 
 	i = 53;
 	for(i; i<106; i++)
@@ -186,18 +192,18 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	i = 0;
 	for(i; i<52; i++)
 		temp_num_due[i] = Number_two_significand[i];
-	temp_num_due[53] = 1;
+	temp_num_due[52] = 1;
 	
 	
-	//cout<<"\ntemp uno inizializzato su 104 bit\n" << temp_num_uno;
+	//cout<<"\ntemp uno inizializzato su 106 bit\n" << temp_num_uno;
 
 	i = 0;
 	carry = 0;
 	for(i; i<53; i++){
 		j = i;
 		if(temp_num_due[i]==1)
-		for(j; j<i+53; j++){
-				
+		for(j; j<=i+53; j++){
+	
 			// risultato = 0
 			if( (mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==0) ){
 				mantissa[j] = 0;
@@ -233,6 +239,8 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	
 	}
 
+	mantissa[106] = carry[0];
+
 	/*cout << "\nCONTROLLO";
 	cout <<"\nmantissa1: " << Number_one_significand << endl;
 	cout <<"\nmantissa2: " << Number_two_significand << endl;
@@ -243,23 +251,67 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
       case ST_4: // controlli e normalizzazione
 
-	i = 105;
-	temp_exp = 0;
-	for(i; i>=52; i--){
+	// togliere 1 in valore dai primi 3 bit convertiti in intero
+	// normalizzare, cioè portar nella forma di 1,...
+	// ,... va riportato bit a bit nell'esponente
+
+	/* es:
+	1,5 x 1,5 = 2,25
+	2,25 = 11,01 
+	--> tolgo 1 
+	--> 10,01 
+	--> porta in forma 1,001 aumentando di 1 l'exp 
+	--> l'1 va omesso, ho quindi 0,001 
+	--> 1*2(-3) = 0,125  
+	--> 1+0,125 = 1,125
+	--> 1,125 * 2^(1) = 2,25
+	*/
+
+	
+
+
+	//cout <<"\nprodotto mantissa: " << mantissa << endl;
+	
+
+	// devo togliere 1 alla parte intera della mantissa ora !!!
+
+
+
+
+	
+	/*emp_exp = 0;
+	i = 103;
+	for(i; i>=52; i--)
 		if(mantissa[i]==1){
 			mantissa = mantissa >> 1;
 			temp_exp++;
-		}
-	}
+		}*/
 
-	cout <<"\nprodotto dopo gli shift con il ciclo: " << mantissa << endl;
-	cout <<"\nabbiamo fatto tot shift: " << temp_exp;
+	//mantissa = mantissa >> 52;
 
-	i = 0;
-	for(i; i<52; i++)
-		Prodotto_significand[i] = mantissa[i];
 
-	cout <<"\nprodotto finale mantissa :" << Prodotto_significand;
+	cout <<"\nprodotto mantissa:\n" << mantissa << endl;
+	//cout <<"\nabbiamo fatto tot shift: " << temp_exp;
+
+	
+      break;
+
+      case ST_5:
+        
+
+      break;
+
+      case ST_6:
+        
+
+      break;
+
+      case ST_7:
+        
+
+      break;
+
+      case ST_8:
 
 	i = 0;
 	for(i; i<64; i++)
@@ -271,32 +323,29 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	else
 		Prodotto[63] = 1; 
 
+	Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero+1);	
+	
 	i = 62;
-	j = 0;
+	j = 10;
 	for(i; i>=51; i--)
-		Prodotto[i] = Prodotto_exponent[j++];
+		Prodotto[i] = Prodotto_exponent[j--];
+
+
+
+	i = 0;
+	for(i; i<52; i++)
+		Prodotto_significand[i] = mantissa[i+53];
 	
 	i = 51;
 	j = 51;
 	for(i; i>=0; i--)
 		Prodotto[i] = Prodotto_significand[j--];
-	
-        break;
-      case ST_5:
-        
 
-      break;
-      case ST_6:
-        
-
-      break;
-      case ST_7:
-        
-
-      break;
-      case ST_8:
-	// Prodotto.write( Number_one.read() * Number_two.read() );
-        
+	cout<<"\nCONTROLLO FINALE:";
+	cout<<"\nsegno: " << Prodotto[63];
+	cout<<"\nesponente: " << Prodotto_exponent;
+	cout<<"\nmantissa: " << Prodotto_significand;
+	cout<<"\nrisultato: " << Prodotto;
 
       break;
       case ST_9:
