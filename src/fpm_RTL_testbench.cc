@@ -32,8 +32,7 @@ void fpm_RTL_testbench::run()
   cout<<"Calcoliamo la Floating Point Multiplication di 20 coppie di numeri"<<endl;
 
   for (int i = 1; i <= 20; i++){
-    	//temp_data_in_one = doubleToLogicVector((rand() % 256) - 127); 
-    	//temp_data_in_two = doubleToLogicVector((rand() % 256) - 127);
+
 	double first = ((rand() % 21) - 10) * 0.1;
 	double second = ((rand() % 21) - 10) * 0.1;
 	temp_data_in_one = doubleToLogicVector(first); 

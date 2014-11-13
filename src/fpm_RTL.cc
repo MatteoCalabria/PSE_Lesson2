@@ -72,13 +72,17 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
         Number_one = number_port_one.read();
 	Number_one_sign[0] = Number_one[63];	
 
-	exp1 = 10;
+	/*exp1 = 10;
 	for(i = 62 ; i>=52; i--)
-		Number_one_exponent[exp1--] = Number_one[i];
+		Number_one_exponent[exp1--] = Number_one[i];*/
 
-	sign1 = 51;
+	Number_one_exponent = Number_one.range(62, 52);
+
+	/*sign1 = 51;
 	for(j = 51; j>=0; j--)
-		Number_one_significand[sign1--] = Number_one[j];
+		Number_one_significand[sign1--] = Number_one[j];*/
+	
+	Number_one_significand = Number_one.range(51, 0);
 
 	//cout <<"\nsegno" << Number_one_sign ;
 	//cout <<"\nesponente" << Number_one_exponent ;
@@ -91,13 +95,17 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	//cout<<"\nsegno 1:" << Number_one_sign;
 
-	exp2 = 10;
+	/*exp2 = 10;
 	for(i = 62 ; i>=52; i--)
-		Number_two_exponent[exp2--] = Number_two[i];
+		Number_two_exponent[exp2--] = Number_two[i];*/
 
-	sign2 = 51;
+	Number_two_exponent = Number_two.range(62, 52);
+
+	/*sign2 = 51;
 	for(j = 51; j>=0; j--)
-		Number_two_significand[sign2--] = Number_two[j];
+		Number_two_significand[sign2--] = Number_two[j];*/
+
+	Number_two_significand = Number_two.range(51, 0);
 
 	//cout <<"\nsegno" << Number_one_sign ;
 	//cout <<"\nesponente" << Number_one_exponent ;
@@ -180,10 +188,10 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
       case ST_3: // moltiplicazione delle mantisse
 
-	i = 0;
+	/*i = 0;
 	for(i; i<107; i++)
-		mantissa[i] = 0;
-	//mantissa = "0";
+		mantissa[i] = 0;*/
+	mantissa = "0";
 
 	//cout << "\nmantissa inizializzata a zero:\n" << mantissa;
 	
@@ -191,6 +199,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	for(i; i<53; i++)
 		temp_num_uno[i] = Number_one_significand[i];
 	temp_num_uno[52] = 1;
+ 
 
 	i = 53;
 	for(i; i<106; i++)
