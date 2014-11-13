@@ -35,6 +35,8 @@ void fpm_RTL_testbench::run()
 
 	double first = ((rand() % 21) - 10) * 0.1;
 	double second = ((rand() % 21) - 10) * 0.1;
+	//double first = 1.5;
+	//double second = 1.5;
 	temp_data_in_one = doubleToLogicVector(first); 
     	temp_data_in_two = doubleToLogicVector(second);
 

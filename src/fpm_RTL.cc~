@@ -63,6 +63,8 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
       case ST_0:
         result_port.write(0);
         result_isready.write(0);
+	Counter.write(0);
+	carry[0] = 0;
         break;
 
       case ST_1: // leggiamo i due numeri e identifichiamo i loro segni, esponenti e mantisse
@@ -115,9 +117,10 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
       case ST_2: 
 	// somma degli esponenti
-	i = 0;
-	carry[0] = 0;
-	for(i; i<12; i++){
+	i = Counter.read();
+
+	
+	if(i<12){
 
 		if(i==11)
 			Prodotto_exponent[i] = carry[0];
@@ -152,41 +155,21 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	}
 
-	/*exp_intero = 0;
-	i = 0;
-	for(i; i<11; i++)
-		if(Prodotto_exponent[i]==1)
-			exp_intero += pow(2,i);*/
-
-	
-	//cout<<"\nexp intero prima di togliere il bias: " << exp_intero;
-	//cout<<"\nexp logic vector prima di togliere il bias: " << Prodotto_exponent;
 	
 
-	exp_intero = (int) static_cast< sc_uint<12> >(Prodotto_exponent);
-	
-
-	//cout<<"\nexp intero prima di togliere il bias: " << exp_intero;
-	//cout<<"\nexp logic vector prima di togliere il bias: " << Prodotto_exponent;
-	
-	exp_intero = exp_intero - BIAS;
-
-	Prodotto_exponent = static_cast< sc_lv<12> >(exp_intero);
-
-	//cout <<"\nesponente1: " << Number_one_exponent ;
-	//cout <<"\nesponente2: " << Number_two_exponent ;
-	//cout << "\nexp intero dopo aver tolto bias: " << exp_intero;			
-	//cout << "\nexp logic vector dopo aver tolto bias: " << Prodotto_exponent;
-	
-
-	//cout<<"\nesponente uno: " << Number_one_exponent;
-	//cout<<"\nesponente due: " << Number_two_exponent;
-	//cout << "\nsomma esponenti: " << Prodotto_exponent;
-	//cout <<"\nesponente in intero" << exp_intero;
 
         break;
 
+
+	case ST_2_1:
+		Counter.write(Counter.read() + 1);
+	break;
+
       case ST_3: // moltiplicazione delle mantisse
+
+	exp_intero = (int) static_cast< sc_uint<12> >(Prodotto_exponent);
+	exp_intero = exp_intero - BIAS;
+	Prodotto_exponent = static_cast< sc_lv<12> >(exp_intero);
 
 	/*i = 0;
 	for(i; i<107; i++)
@@ -402,8 +385,15 @@ void fpm_RTL :: elaborate_MULT(void){
       break;
 
     case ST_2:
-	NEXT_STATUS = ST_3;
+	if(Counter.read()<12)
+		NEXT_STATUS = ST_2_1;
+	else
+		NEXT_STATUS = ST_3;
       break;
+
+   case ST_2_1:
+	NEXT_STATUS = ST_2;
+	break;
 
     case ST_3:
 	NEXT_STATUS = ST_4;
