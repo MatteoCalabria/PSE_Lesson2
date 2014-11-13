@@ -17,20 +17,6 @@ SC_MODULE(fpm_RTL){
 
   sc_signal<STATES> STATUS, NEXT_STATUS;
   sc_signal< sc_uint<8> > Counter;
-  /*sc_signal<sc_uint<64> > Number_one;
-  sc_signal<sc_uint<64> > Number_one_significand;
-  sc_signal<sc_uint<64> > Number_one_exponent;
-  sc_signal<sc_uint<1> > Number_one_sign;*/
-
-  /*sc_signal<sc_uint<64> > Number_two;
-  sc_signal<sc_uint<64> > Number_two_significand;
-  sc_signal<sc_uint<64> > Number_two_exponent;
-  sc_signal<sc_uint<1> > Number_two_sign;*/
-
-  //sc_signal<sc_uint<64> > Prodotto;
-  /*sc_signal<sc_uint<64> > Prodotto_significand;
-  sc_signal<sc_uint<64> > Prodotto_exponent;
-  sc_signal<sc_uint<1> > Prodotto_sign;*/
 
   void elaborate_MULT(void);
   void elaborate_MULT_FSM(void);
