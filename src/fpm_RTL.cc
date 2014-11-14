@@ -84,10 +84,9 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
         break;
 
-      case ST_2: 
-	// somma degli esponenti
-	i = Counter.read();
+      case ST_2: // somma degli esponenti
 
+	i = Counter.read();
 	
 	if(i<12){
 
@@ -132,19 +131,21 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	break;
 
-      case ST_3: // moltiplicazione delle mantisse
+      case ST_3: 
 
+	// togliamo il BIAS
 	exp_intero = (int) static_cast< sc_uint<12> >(Prodotto_exponent);
 	exp_intero = exp_intero - BIAS;
 	Prodotto_exponent = static_cast< sc_lv<12> >(exp_intero);
 
-
+	// alcune inizializzazioni
 	mantissa = "0";
 	
 	temp_num_uno = "0";
 	temp_num_uno = Number_one_significand.range(51, 0);
 	temp_num_uno[52] = 1;
 
+	temp_num_due = "0";
 	temp_num_due = Number_two_significand.range(51,0);
 	temp_num_due[52] = 1;
 
@@ -195,12 +196,10 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		temp_num_uno = temp_num_uno << 1; 
 	}
 
-	
-
       break;
 
       case ST_4_1:
-	
+		// incrementiamo di 1 il contatore per realizzare il "ciclo for"
 		Counter2.write(Counter2.read() + 1);
 
       break;
@@ -214,7 +213,6 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero+1);
 	}
         
-
       break;
 
       case ST_6:

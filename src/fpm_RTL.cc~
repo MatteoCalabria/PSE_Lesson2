@@ -62,7 +62,6 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
         result_isready.write(0);
 	Counter.write(0);
 	Counter2.write(0);
-	Counter3.write(0);
 	carry[0] = 0;
 	zeri = "0";
         break;
@@ -85,10 +84,9 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
         break;
 
-      case ST_2: 
-	// somma degli esponenti
-	i = Counter.read();
+      case ST_2: // somma degli esponenti
 
+	i = Counter.read();
 	
 	if(i<12){
 
@@ -133,13 +131,14 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 	break;
 
-      case ST_3: // moltiplicazione delle mantisse
+      case ST_3: 
 
+	// togliamo il BIAS
 	exp_intero = (int) static_cast< sc_uint<12> >(Prodotto_exponent);
 	exp_intero = exp_intero - BIAS;
 	Prodotto_exponent = static_cast< sc_lv<12> >(exp_intero);
 
-
+	// alcune inizializzazioni
 	mantissa = "0";
 	
 	temp_num_uno = "0";
@@ -157,63 +156,51 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
       case ST_4: // controlli e normalizzazione
 
 	i = Counter2.read();
-	j = Counter3.read();
 
 	if(i<53){
+		j = i;
 		if(temp_num_due[i]==1)
-			if(j<i+53){
+		for(j; j<=i+53; j++){
 	
-				// risultato = 0
-				if( (mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==0) ){
-					mantissa[j] = 0;
-					carry[0] = 0;
-				}
+			// risultato = 0
+			if( (mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==0) ){
+				mantissa[j] = 0;
+				carry[0] = 0;
+			}
 
-				// risultato = 1
-				else if( ((mantissa[j]==1) && (temp_num_uno[j]==0) && (carry[0]==0)) ||
-				((mantissa[j]==0) && (temp_num_uno[j]==1) && (carry[0]==0)) ||
-				((mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==1)) ) {
-					mantissa[j] = 1;
-					carry[0] = 0;
-				}
+			// risultato = 1
+			else if( ((mantissa[j]==1) && (temp_num_uno[j]==0) && (carry[0]==0)) ||
+			((mantissa[j]==0) && (temp_num_uno[j]==1) && (carry[0]==0)) ||
+			((mantissa[j]==0) && (temp_num_uno[j]==0) && (carry[0]==1)) ) {
+				mantissa[j] = 1;
+				carry[0] = 0;
+			}
 
-				// risultato = 2
-				else if( ((mantissa[j]==1) && (temp_num_uno[j]==1) && (carry[0]==0)) ||
-				((mantissa[j]==0) && (temp_num_uno[j]==1) && (carry[0]==1)) ||
-				((mantissa[j]==1) && (temp_num_uno[j]==0) && (carry[0]==1)) ) {
-					mantissa[j] = 0;
-					carry[0] = 1;
-				}
+			// risultato = 2
+			else if( ((mantissa[j]==1) && (temp_num_uno[j]==1) && (carry[0]==0)) ||
+			((mantissa[j]==0) && (temp_num_uno[j]==1) && (carry[0]==1)) ||
+			((mantissa[j]==1) && (temp_num_uno[j]==0) && (carry[0]==1)) ) {
+				mantissa[j] = 0;
+				carry[0] = 1;
+			}
 
-				// risultato > 2
-				else if( (mantissa[j]==1) && (temp_num_uno[j]==1) && (carry[0]==1) ){
-					mantissa[j] = 1;
-					carry[0] = 1;
-				}
-			}	
+			// risultato > 2
+			else if( (mantissa[j]==1) && (temp_num_uno[j]==1) && (carry[0]==1) ){
+				mantissa[j] = 1;
+				carry[0] = 1;
+			}
+
+		}	
 		
 		// shift
 		temp_num_uno = temp_num_uno << 1; 
 	}
 
-	
-
       break;
 
       case ST_4_1:
-	
-		Counter3.write(Counter3.read() + 1);
-
-      break;
-
-      case ST_4_2:
-	
+		// incrementiamo di 1 il contatore per realizzare il "ciclo for"
 		Counter2.write(Counter2.read() + 1);
-		Counter3.write(Counter2.read());
-
-		cout<<"\nciclo EXT";
-		cout<<"\ncounter2:" << Counter2.read();
-		cout<<"\ncounter3:" << Counter3.read();
 
       break;
 
@@ -316,19 +303,12 @@ void fpm_RTL :: elaborate_MULT(void){
    
     case ST_4:
 	if(Counter2.read()<53)
-		if(Counter3.read() < (Counter2.read()+53))
-			NEXT_STATUS = ST_4_1;
-		else
-			NEXT_STATUS = ST_4_2;
+		NEXT_STATUS = ST_4_1;
 	else
 		NEXT_STATUS = ST_5;
       break;
 
     case ST_4_1:
-	NEXT_STATUS = ST_4;
-      break;
-
-    case ST_4_2:
 	NEXT_STATUS = ST_4;
       break;
 
