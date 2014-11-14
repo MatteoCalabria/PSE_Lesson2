@@ -13,10 +13,11 @@ SC_MODULE(fpm_RTL){
   sc_out<sc_uint<64> >  result_port;
   sc_out<sc_uint<1> >   result_isready;
 
-  typedef enum {Reset_ST, ST_0, ST_1, ST_2, ST_2_1, ST_3, ST_4, ST_5, ST_6, ST_7, ST_8, ST_9} STATES;
+  typedef enum {Reset_ST, ST_0, ST_1, ST_2, ST_2_1, ST_3, ST_4, ST_4_1, ST_5, ST_6, ST_7, ST_8, ST_9} STATES;
 
   sc_signal<STATES> STATUS, NEXT_STATUS;
-  sc_signal< sc_uint<8> > Counter;
+  sc_signal< sc_uint<4> > Counter;
+  sc_signal< sc_uint<6> > Counter2;
 
   void elaborate_MULT(void);
   void elaborate_MULT_FSM(void);
@@ -27,7 +28,7 @@ SC_MODULE(fpm_RTL){
     sensitive << clk.pos();
 
     SC_METHOD(elaborate_MULT);
-    sensitive << STATUS << numbers_areready << number_port_one << number_port_two << Counter;
+    sensitive << STATUS << numbers_areready << number_port_one << number_port_two << Counter << Counter2;
   };
 };
 

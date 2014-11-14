@@ -61,6 +61,7 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
         result_port.write(0);
         result_isready.write(0);
 	Counter.write(0);
+	Counter2.write(0);
 	carry[0] = 0;
 	zeri = "0";
         break;
@@ -126,7 +127,9 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 
 
 	case ST_2_1:
+
 		Counter.write(Counter.read() + 1);
+
 	break;
 
       case ST_3: // moltiplicazione delle mantisse
@@ -145,9 +148,15 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 	temp_num_due = Number_two_significand.range(51,0);
 	temp_num_due[52] = 1;
 
-	i = 0;
 	carry = 0;
-	for(i; i<53; i++){
+
+	break;
+
+      case ST_4: // controlli e normalizzazione
+
+	i = Counter2.read();
+
+	if(i<53){
 		j = i;
 		if(temp_num_due[i]==1)
 		for(j; j<=i+53; j++){
@@ -184,24 +193,26 @@ void fpm_RTL :: elaborate_MULT_FSM(void){
 		
 		// shift
 		temp_num_uno = temp_num_uno << 1; 
-	
 	}
 
-	mantissa[106] = carry[0];
 	
-	
-		 
 
-      case ST_4: // controlli e normalizzazione
+      break;
+
+      case ST_4_1:
+	
+		Counter2.write(Counter2.read() + 1);
+
+      break;
+
+      case ST_5:
+
+	mantissa[106] = carry[0];
 
 	if(mantissa[105]==1){
 		mantissa = mantissa >> 1;
 		Prodotto_exponent = static_cast< sc_lv<11> >(exp_intero+1);
 	}
-
-      break;
-
-      case ST_5:
         
 
       break;
@@ -290,13 +301,18 @@ void fpm_RTL :: elaborate_MULT(void){
 	NEXT_STATUS = ST_4;
       break;
 
-    // controllo il segnale overflow, se è a 1, allora vado ST_5 che darà errore
-    // altrimenti avanza allo stato ST_6	
+   
     case ST_4:
-	NEXT_STATUS = ST_5;
+	if(Counter2.read()<53)
+		NEXT_STATUS = ST_4_1;
+	else
+		NEXT_STATUS = ST_5;
       break;
 
-    // se vado nello stato ST_5, manderò errore e il prossimo stato sarà lo stato di reset
+    case ST_4_1:
+	NEXT_STATUS = ST_4;
+      break;
+
     case ST_5:
       	NEXT_STATUS = ST_6;
       break;
@@ -305,8 +321,7 @@ void fpm_RTL :: elaborate_MULT(void){
       NEXT_STATUS = ST_7;
       break;
 
-    // stato di controllo, controlla sul segnale not_normalized se è a 1
-    // il numero non è normalizzato allora torno allo stato ST_3
+  
     case ST_7:
 	NEXT_STATUS = ST_8;
       break;
@@ -315,7 +330,7 @@ void fpm_RTL :: elaborate_MULT(void){
       NEXT_STATUS = ST_9;
       break;
 	
-    // stato finale, torno a allo stato di reset
+  
     case ST_9:
       NEXT_STATUS = Reset_ST;
       break;
